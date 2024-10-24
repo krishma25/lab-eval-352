@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Sales_Data</title>
+        <style>
+            table{
+                width:100%;
+                border-collapse: collapse;
+            }
+            th, td {
+                border: 1px solid black;
+                padding: 8px;
+                text-align: center;
+            }
+            canvas{
+                margin-top: 20px;
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>JSON Product Table</h1>
+        <table id="product">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Q1</th>
+                    <th>Q2</th>
+                    <th>Q3</th>
+                    <th>Q4</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <canvas id="Sale_Data" width="500" height="600"></canvas>
+        
+        <script>
+            function loadjson(){
+                fetch('data.json')
+                .then(response => response.json())
+                .then(data => {
+                    processjson(data);
+                })
+                .catch(error => console.error('Error loading JSON:', error));
+        }
+            
+
+            function processjson(data) {
+                const tableBody = document.querySelector('#product tbody');
+                tableBody.innerHTML = ''; 
+                const chartData = [];
+
+                data.categories.forEach(item => {
+                    const row = document.createElement('tr');
+                    const categoryCell = document.createElement('td');
+                    const Q1Cell = document.createElement('td');
+                    const Q2Cell = document.createElement('td');
+                    const Q3Cell = document.createElement('td');
+                    const Q4Cell = document.createElement('td');
+
+                    categoryCell.textContent = item.name;
+                    Q1Cell.textContent = item.Q1;
+                    Q2Cell.textContent = item.Q2;
+                    Q3Cell.textContent = item.Q3;
+                    Q4Cell.textContent = item.Q4;
+
+                    row.appendChild(categoryCell);
+                    row.appendChild(Q1Cell);
+                    row.appendChild(Q2Cell);
+                    row.appendChild(Q3Cell);
+                    row.appendChild(Q4Cell);
+                    tableBody.appendChild(row);
+
+                    chartData.push({ name: item.name, Q1: item.Q1, Q2: item.Q2, Q3: item.Q3, Q4: item.Q4 });
+                });
+
+                drawSimpleChart(chartData);
+            }
+
+            function drawSimpleChart(data) {
+                const canvas = document.getElementById('Sale_Data');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const maxValue = Math.max(...data.map(item => Math.max(item.Q1, item.Q2, item.Q3, item.Q4)));
+                const barWidth = 50;
+                const chartHeight = 500;
+                const maxBarHeight = 400;
+                const xOffset = 50;
+
+                data.forEach((item, index) => {
+                    const barHeightQ1 = (item.Q1 / maxValue) * maxBarHeight;
+                    const barHeightQ2 = (item.Q2 / maxValue) * maxBarHeight;
+                    const barHeightQ3 = (item.Q3 / maxValue) * maxBarHeight;
+                    const barHeightQ4 = (item.Q4 / maxValue) * maxBarHeight;
+
+                    const x = xOffset + index * (barWidth * 5); 
+                    
+                    
+                    ctx.fillStyle = '#4CAF50';
+                    ctx.fillRect(x, chartHeight - barHeightQ1, barWidth, barHeightQ1);
+                    ctx.fillStyle = '#FF5733';
+                    ctx.fillRect(x + barWidth, chartHeight - barHeightQ2, barWidth, barHeightQ2);
+                    ctx.fillStyle = '#33C1FF';
+                    ctx.fillRect(x + barWidth * 2, chartHeight - barHeightQ3, barWidth, barHeightQ3);
+                    ctx.fillStyle = '#FFC133';
+                    ctx.fillRect(x + barWidth * 3, chartHeight - barHeightQ4, barWidth, barHeightQ4);
+
+                    
+                    ctx.fillStyle = '#000';
+                    ctx.font = '14px Arial';
+                    ctx.fillText(item.name, x + barWidth * 2, chartHeight + 20);
+                });
+            }
+
+            window.onload = loadjson();
+        </script>
+    </body>
+</html>
